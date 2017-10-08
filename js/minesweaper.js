@@ -3,10 +3,12 @@ var Grid = function(width, height, level) {
     this.height = height;
     this.totalMines = level;
 
-    this.init = function() {
+    this.init = function(a) {
+        console.log(a);
         placeMines(this);
         calculateNoOfMines(this);
         renderGrid(this);
+        bindEvents();
     }
 
     var __getTwoDimentionArray = function(n, m) {
@@ -21,9 +23,9 @@ var Grid = function(width, height, level) {
 
     var __doesTilehasMine = function() {
         var number = Math.floor((Math.random() * 100) + 1);
-        console.log(number);
-        if (number % 2 == 0) {
-            console.log("found here");
+        // console.log(number);
+        if (number % 5 == 0) {
+            // console.log("found here");
             return true
         }
         return false;
@@ -33,17 +35,16 @@ var Grid = function(width, height, level) {
         var mines = 0;
         for (i = 0; i < height; i++) {
             for (j = 0; j < width; j++) {
+                var tile = new Tile();
                 if (mines <= grid.totalMines) {
-                    var tile = new Tile();
                     if (__doesTilehasMine()) {
                         tile.hasMine = true;
                         tile.noOfMines = -8;
                         mines++;
                     }
-                    grid.gridData[i][j] = tile;
-                } else {
-                    return true
+
                 }
+                grid.gridData[i][j] = tile;
             }
         }
         return true;
@@ -96,7 +97,7 @@ var Grid = function(width, height, level) {
 
     var __updateMinesCount = function(grid, i, j) {
         if ((i >= 0 && i < grid.height) && (j >= 0 && j < grid.width)) {
-            console.log(i + "i , j" + j);
+            // console.log(i + "i , j" + j);
             grid.gridData[i][j].noOfMines += 1;
         }
         return;
@@ -114,29 +115,25 @@ var Grid = function(width, height, level) {
         return;
     }
 
-    var renderGrid = function() {
+    var renderGrid = function(grid) {
+        var source = $("#some-template").html();
+        var template = Handlebars.compile(source);
 
+        var data = new Object();
+        data.width = grid.width;
+        data.height = grid.height;
+        data.gridData = grid.gridData;
+
+        $('body').append(template(data));
+        // Handlebar runtime 
+        // var gridHTML = Handlebars.templates.description(grid);
+        // $("#grid").innerHTML = descHtml;
         return;
     }
 
-    this.rightClick = function(tile) {
-        if (tile.hasMine && !tile.hasFlag) {
-            __revilGrid();
-            return false;
-        }
-        if (tile.noOfMines) {
-            tile.isOpened = true;
-            return true;
-        }
-    }
 
-    this.leftClick = function(tile) {
-        if (tile.hasFlag) {
-            tile.hasFlag = false;
-        } else {
-            tile.hasFlag = true;
-        }
-        return;
+    var bindEvents = function() {
+        // $("#grid td").on("click", this.rightClick(1));
     }
 }
 
@@ -149,6 +146,33 @@ var Tile = function() {
 }
 
 
-var grid = new Grid(8, 8, 44);
+var grid = new Grid(16, 16, 200);
 
-grid.init();
+grid.init(1);
+
+$("td").on("click", rightClick);
+
+
+var rightClick = function() {
+    console.log("rightClick");
+    alert("row number: " + ($(this).index() + 1));
+
+    // if (tile.hasMine && !tile.hasFlag) {
+    //     __revilGrid();
+    //     return false;
+    // }
+    // if (tile.noOfMines) {
+    //     tile.isOpened = true;
+    //     return true;
+    // }
+}
+
+var leftClick = function(tile) {
+        if (tile.hasFlag) {
+            tile.hasFlag = false;
+        } else {
+            tile.hasFlag = true;
+        }
+        return;
+    }
+    // grid.rightClick();

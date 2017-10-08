@@ -5,11 +5,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Minesweaper</title>
+
+	<style>
+	table, td, th {    
+    	border: 1px solid #ddd;
+    	text-align: left;
+	}
+
+	table {
+	    border-collapse: collapse;
+	    width: 100%;
+	}
+
+	th, td {
+	    padding: 15px;
+	}
+	td {
+		max-width: 50px;
+		max-height: 50px; 
+	}
+	.mine-true {
+		background-color: #FF0000;
+	}
+	.colorCode-1 {
+		color: Blue;
+	}
+	.colorCode-2 {
+		color: Green;
+	}
+	.colorCode-3 {
+		color: Red;
+	}
+	.colorCode-4 {
+		color: Blue;
+	}
+	.colorCode-5 {
+		color: Red;
+	}
+	.colorCode-6 {
+		color: Blue;
+	}
+	.colorCode-7 {
+		color: Blue;
+	}
+	.colorCode-8 {
+		color: Blue;
+	}
+	</style>
+    <script id="some-template" type="text/x-handlebars-template">
+    <table>
+		{{#each gridData}}
+		<tr>
+			{{#each this}}
+			<td class="mine-{{this.hasMine}} colorCode-{{this.noOfMines}}">
+				{{this.noOfMines}}
+			</td>
+			{{/each}}
+		</tr>
+		{{/each}}
+	</table>
+	</script>
 </head>
 
 <body>
-
+<div id="grid"></div>
 </body>
+<script src="js/Third-Party_lib/jQuery-min.js"></script>
+<script src="js/Third-Party_lib/handlebars-v4.0.10.js"></script>
 
 <script src="js/minesweaper.js"></script>
 
