@@ -2,6 +2,7 @@ var Grid = function(width, height, level) {
     this.width = width;
     this.height = height;
     this.totalMines = level;
+    this.gameSolved = false;
 
     this.init = function(a) {
         console.log(a);
@@ -59,7 +60,7 @@ var Grid = function(width, height, level) {
         neighbour_j_index = j - 1;
         __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
 
-        // Top 
+        // Top
         neighbour_i_index = i - 1;
         neighbour_j_index = j;
         __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
@@ -125,12 +126,54 @@ var Grid = function(width, height, level) {
         data.gridData = grid.gridData;
 
         $('body').append(template(data));
-        // Handlebar runtime 
+        // Handlebar runtime
         // var gridHTML = Handlebars.templates.description(grid);
         // $("#grid").innerHTML = descHtml;
         return;
     }
 
+    this.__revilGrid = function(i, j){
+        if ((i < 0 || i >= this.width) || (j < 0 || j >= this.height)) {
+            return;
+        }
+        if (this.gridData[i][j].noOfMines > 0 || (this.gridData[i][j].hasMine) || this.gridData[i][j].isOpened) {
+            this.gridData[i][j].isOpened = true;
+            return this;
+        }
+        this.gridData[i][j].isOpened = true;
+        // Go Top Left
+        this.__revilGrid(i-1, j-1);
+        // Go Top
+        this.__revilGrid(i-1, j);
+        // Go Top Right
+        this.__revilGrid(i-1, j+1);
+        // go Right
+        this.__revilGrid(i, j+1);
+        // go Bottom Right
+        this.__revilGrid(i+1, j+1);
+        // go Bottom
+        this.__revilGrid(i+1, j);
+        // go Bottom Left
+        this.__revilGrid(i+1, j-1);
+        // go Left
+        this.__revilGrid(i, j-1);
+    }
+
+    this.__revilAllGrid = function(){
+        for (i = 0; i < this.height; i++) {
+            for (j = 0; j < this.width; j++) {
+                var tile = this.gridData[i][j];
+                if (tile.hasFlag) {
+                    if (tile.hasMine) {
+                        continue;
+                    }
+                }
+                tile.isOpened = true;
+            }
+        }
+        this.gameSolved = true;
+        return;
+    }
 
     var bindEvents = function() {
         // $("#grid td").on("click", this.rightClick(1));
