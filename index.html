@@ -24,8 +24,15 @@
 		max-width: 50px;
 		max-height: 50px; 
 	}
+	td > .covered {
+		background-color: gray;
+		z-index: 300;
+	}
 	.mine-true {
 		background-color: #FF0000;
+	}
+	.flag-true {
+		background-color: #FFDDDE;
 	}
 	.colorCode-1 {
 		color: Blue;
@@ -55,9 +62,9 @@
     <script id="some-template" type="text/x-handlebars-template">
     <table>
 		{{#each gridData}}
-		<tr>
+		<tr id="{{@index}}">
 			{{#each this}}
-			<td class="mine-{{this.hasMine}} colorCode-{{this.noOfMines}}">
+			<td id="{{@index}}" class="colorCode-{{this.noOfMines}}">
 				{{this.noOfMines}}
 			</td>
 			{{/each}}

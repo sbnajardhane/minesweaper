@@ -5,7 +5,6 @@ var Grid = function(width, height, level) {
     this.gameSolved = false;
 
     this.init = function(a) {
-        console.log(a);
         placeMines(this);
         calculateNoOfMines(this);
         renderGrid(this);
@@ -132,7 +131,7 @@ var Grid = function(width, height, level) {
         return;
     }
 
-    this.__revilGrid = function(i, j){
+    this.__revilGrid = function(i, j) {
         if ((i < 0 || i >= this.width) || (j < 0 || j >= this.height)) {
             return;
         }
@@ -142,24 +141,24 @@ var Grid = function(width, height, level) {
         }
         this.gridData[i][j].isOpened = true;
         // Go Top Left
-        this.__revilGrid(i-1, j-1);
+        this.__revilGrid(i - 1, j - 1);
         // Go Top
-        this.__revilGrid(i-1, j);
+        this.__revilGrid(i - 1, j);
         // Go Top Right
-        this.__revilGrid(i-1, j+1);
+        this.__revilGrid(i - 1, j + 1);
         // go Right
-        this.__revilGrid(i, j+1);
+        this.__revilGrid(i, j + 1);
         // go Bottom Right
-        this.__revilGrid(i+1, j+1);
+        this.__revilGrid(i + 1, j + 1);
         // go Bottom
-        this.__revilGrid(i+1, j);
+        this.__revilGrid(i + 1, j);
         // go Bottom Left
-        this.__revilGrid(i+1, j-1);
+        this.__revilGrid(i + 1, j - 1);
         // go Left
-        this.__revilGrid(i, j-1);
+        this.__revilGrid(i, j - 1);
     }
 
-    this.__revilAllGrid = function(){
+    this.__revilAllGrid = function() {
         for (i = 0; i < this.height; i++) {
             for (j = 0; j < this.width; j++) {
                 var tile = this.gridData[i][j];
@@ -175,6 +174,58 @@ var Grid = function(width, height, level) {
         return;
     }
 
+    this.rightClick = function(row, col) {
+        // console.log("rightClick");
+        var tile = this.gridData[row][col];
+        // console.log(tile);
+
+        if (tile.hasFlag) {
+            tile.hasFlag = false;
+        } else {
+            tile.hasFlag = true;
+        }
+        this.gridData[row][col] = tile;
+        return;
+    }
+
+    this.leftClick = function(row, col) {
+        var tile = this.gridData[row][col];
+        // console.log(tile);
+        if (tile.hasMine && !tile.hasFlag) {
+            this.__revilAllGrid();
+            return false;
+        }
+        if (tile.noOfMines) {
+            tile.isOpened = true;
+            return true;
+        }
+        if (tile.noOfMines == 0) {
+            this.__revilGrid(row, col);
+            return true;
+        }
+        return;
+    }
+
+    this.updateTile = function(element, tile) {
+        $(element).removeClass("flag-true");
+        if (tile.hasFlag) {
+            $(element).addClass("flag-true");
+            return;
+        } else {
+            $(element).removeClass("flag-true");
+            // return;
+        }
+        if (tile.hasMine) {
+            $(element).addClass("mine-true");
+            return;
+        } else {
+            $(element).removeClass("mine-true");
+            // return;
+        }
+
+
+        return;
+    }
     var bindEvents = function() {
         // $("#grid td").on("click", this.rightClick(1));
     }
@@ -189,33 +240,40 @@ var Tile = function() {
 }
 
 
-var grid = new Grid(16, 16, 200);
+var grid = new Grid(8, 8, 100);
 
-grid.init(1);
+grid.init();
 
-$("td").on("click", rightClick);
+$("tr > td").mouseup(function(event) {
 
-
-var rightClick = function() {
-    console.log("rightClick");
-    alert("row number: " + ($(this).index() + 1));
-
-    // if (tile.hasMine && !tile.hasFlag) {
-    //     __revilGrid();
-    //     return false;
-    // }
-    // if (tile.noOfMines) {
-    //     tile.isOpened = true;
-    //     return true;
-    // }
-}
-
-var leftClick = function(tile) {
-        if (tile.hasFlag) {
-            tile.hasFlag = false;
-        } else {
-            tile.hasFlag = true;
+    // console.log($(this));
+    var row = $(this).parent()[0].id;
+    var col = $(this)[0].cellIndex;
+    if (!grid.gridData[row][col].isOpened) {
+        switch (event.which) {
+            case 1:
+                grid.leftClick(row, col);
+                console.log("left");
+                break;
+            case 2:
+            case 3:
+                grid.rightClick(row, col);
+                event.preventDefault();
+                console.log("right");
+                break;
+            default:
+                return;
         }
-        return;
+        grid.updateTile(this, grid.gridData[row][col]);
+        // $(this).addClass("mine");
+        console.log(grid.gridData[row][col]);
     }
-    // grid.rightClick();
+});
+
+// $("td").on("click", function(this) {
+
+// console.log($(this).index());
+// });
+
+
+// grid.rightClick();
