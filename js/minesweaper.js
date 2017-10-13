@@ -135,11 +135,14 @@ var Grid = function(width, height, level) {
         if ((i < 0 || i >= this.width) || (j < 0 || j >= this.height)) {
             return;
         }
+        $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("opened");
+
         if (this.gridData[i][j].noOfMines > 0 || (this.gridData[i][j].hasMine) || this.gridData[i][j].isOpened) {
             this.gridData[i][j].isOpened = true;
             return this;
         }
         this.gridData[i][j].isOpened = true;
+
         // Go Top Left
         this.__revilGrid(i - 1, j - 1);
         // Go Top
@@ -163,11 +166,26 @@ var Grid = function(width, height, level) {
             for (j = 0; j < this.width; j++) {
                 var tile = this.gridData[i][j];
                 if (tile.hasFlag) {
+                    tile.isOpened = true;
                     if (tile.hasMine) {
+                        $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("flag-true");
+                        continue;
+                    }
+                    else {
+                        $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("flag-false");
                         continue;
                     }
                 }
+                if (tile.hasMine && !tile.hasFlag) {
+                    tile.isOpened = true;
+                    $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("mine-true");
+                    continue;
+                }
+                if (tile.isOpened) {
+                    continue;
+                }
                 tile.isOpened = true;
+                $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("opened");
             }
         }
         this.gameSolved = true;
@@ -197,6 +215,7 @@ var Grid = function(width, height, level) {
         }
         if (tile.noOfMines) {
             tile.isOpened = true;
+            $("table tbody tr:nth-child("+(row + 1)+") td:nth-child(" + (col + 1) + ")").addClass("opened");
             return true;
         }
         if (tile.noOfMines == 0) {
@@ -207,7 +226,7 @@ var Grid = function(width, height, level) {
     }
 
     this.updateTile = function(element, tile) {
-        $(element).removeClass("flag-true");
+        // $(element).removeClass("flag-true");
         if (tile.hasFlag) {
             $(element).addClass("flag-true");
             return;
@@ -222,8 +241,6 @@ var Grid = function(width, height, level) {
             $(element).removeClass("mine-true");
             // return;
         }
-
-
         return;
     }
     var bindEvents = function() {
@@ -247,7 +264,7 @@ grid.init();
 $("tr > td").mouseup(function(event) {
 
     // console.log($(this));
-    var row = $(this).parent()[0].id;
+    var row = parseInt($(this).parent()[0].id);
     var col = $(this)[0].cellIndex;
     if (!grid.gridData[row][col].isOpened) {
         switch (event.which) {
