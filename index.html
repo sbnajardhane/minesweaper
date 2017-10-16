@@ -66,6 +66,7 @@
 	}
 	</style>
     <script id="some-template" type="text/x-handlebars-template">
+    
     <table>
 		{{#each gridData}}
 		<tr id="{{@index}}">
@@ -81,6 +82,12 @@
 </head>
 
 <body>
+	<p>
+    	<span id="flag">Flag: 34</span>
+    	<span>
+    		<button id="restart">Restart</button>
+    	</span>
+    </p>
 <div id="grid"></div>
 </body>
 <script src="js/Third-Party_lib/jQuery-min.js"></script>

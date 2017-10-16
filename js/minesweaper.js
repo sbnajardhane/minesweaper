@@ -124,7 +124,8 @@ var Grid = function(width, height, level) {
         data.height = grid.height;
         data.gridData = grid.gridData;
 
-        $('body').append(template(data));
+        $("#grid").html(template(data));
+        // $("body").append(template(data));
         // Handlebar runtime
         // var gridHTML = Handlebars.templates.description(grid);
         // $("#grid").innerHTML = descHtml;
@@ -165,8 +166,11 @@ var Grid = function(width, height, level) {
         for (i = 0; i < this.height; i++) {
             for (j = 0; j < this.width; j++) {
                 var tile = this.gridData[i][j];
+                if (tile.isOpened) {
+                    continue;
+                }
+                tile.isOpened = true;
                 if (tile.hasFlag) {
-                    tile.isOpened = true;
                     if (tile.hasMine) {
                         $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("flag-true");
                         continue;
@@ -177,19 +181,44 @@ var Grid = function(width, height, level) {
                     }
                 }
                 if (tile.hasMine && !tile.hasFlag) {
-                    tile.isOpened = true;
                     $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("mine-true");
                     continue;
                 }
-                if (tile.isOpened) {
-                    continue;
-                }
-                tile.isOpened = true;
                 $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("opened");
             }
         }
         this.gameSolved = true;
+        gameOverMessage(false);
         return;
+    }
+
+    this.__checkGrid = function() {
+        var gameSolved = false;
+        for (i = 0; i < this.height; i++) {
+            for (j = 0; j < this.width; j++) {
+                var tile = this.gridData[i][j];
+                if (tile.isOpened) {
+                    continue;
+                }
+                else if (tile.hasMine) {
+                    continue;
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    var gameOverMessage = function(flag) {
+        if (flag) {
+            $("body").append("<p style='color:green'>Success</p>");
+        }
+        else {
+            $("body").append("<p style='color:red'>Failed</p>");
+        }
+        return true;
     }
 
     this.rightClick = function(row, col) {
@@ -203,6 +232,10 @@ var Grid = function(width, height, level) {
             tile.hasFlag = true;
         }
         this.gridData[row][col] = tile;
+        if (this.__checkGrid()) {
+            this.gameSolved = true;
+            gameOverMessage(true);
+        }
         return;
     }
 
@@ -221,6 +254,10 @@ var Grid = function(width, height, level) {
         if (tile.noOfMines == 0) {
             this.__revilGrid(row, col);
             return true;
+        }
+        if (this.__checkGrid()) {
+            this.gameSolved = true;
+            showSuccess();
         }
         return;
     }
@@ -256,37 +293,41 @@ var Tile = function() {
     this.noOfMines = 0;
 }
 
+$( document ).ready(function() {
+    
+    var grid;
+    $("#restart").on("click", function(){
+        grid = new Grid(8, 8, 100);
+        grid.init();
+    });
+    $("#restart").trigger("click");
 
-var grid = new Grid(8, 8, 100);
+    $("tr > td").mouseup(function(event) {
 
-grid.init();
-
-$("tr > td").mouseup(function(event) {
-
-    // console.log($(this));
-    var row = parseInt($(this).parent()[0].id);
-    var col = $(this)[0].cellIndex;
-    if (!grid.gridData[row][col].isOpened) {
-        switch (event.which) {
-            case 1:
-                grid.leftClick(row, col);
-                console.log("left");
-                break;
-            case 2:
-            case 3:
-                grid.rightClick(row, col);
-                event.preventDefault();
-                console.log("right");
-                break;
-            default:
-                return;
+        // console.log($(this));
+        var row = parseInt($(this).parent()[0].id);
+        var col = $(this)[0].cellIndex;
+        if (!grid.gridData[row][col].isOpened && !this.gameSolved) {
+            switch (event.which) {
+                case 1:
+                    grid.leftClick(row, col);
+                    console.log("left");
+                    break;
+                case 2:
+                case 3:
+                    grid.rightClick(row, col);
+                    event.preventDefault();
+                    console.log("right");
+                    break;
+                default:
+                    return;
+            }
+            grid.updateTile(this, grid.gridData[row][col]);
+            // $(this).addClass("mine");
+            console.log(grid.gridData[row][col]);
         }
-        grid.updateTile(this, grid.gridData[row][col]);
-        // $(this).addClass("mine");
-        console.log(grid.gridData[row][col]);
-    }
+    });
 });
-
 // $("td").on("click", function(this) {
 
 // console.log($(this).index());
