@@ -3,12 +3,12 @@ var Grid = function(width, height, level) {
     this.height = height;
     this.totalMines = level;
     this.gameSolved = false;
+    this.totalFlags = level;
 
-    this.init = function(a) {
-        placeMines(this);
-        calculateNoOfMines(this);
-        renderGrid(this);
-        bindEvents();
+    this.init = function() {
+        this.placeMines();
+        this.calculateNoOfMines();
+        this.renderGrid();
     }
 
     var __getTwoDimentionArray = function(n, m) {
@@ -19,7 +19,7 @@ var Grid = function(width, height, level) {
         return array;
     }
 
-    this.gridData = __getTwoDimentionArray(width, height);
+    this.gridData = __getTwoDimentionArray(height, width);
 
     var __doesTilehasMine = function() {
         var number = Math.floor((Math.random() * 100) + 1);
@@ -31,12 +31,12 @@ var Grid = function(width, height, level) {
         return false;
     }
 
-    var placeMines = function(grid) {
+    this.placeMines = function() {
         var mines = 0;
         for (i = 0; i < height; i++) {
             for (j = 0; j < width; j++) {
                 var tile = new Tile();
-                if (mines <= grid.totalMines) {
+                if (mines <= this.totalMines) {
                     if (__doesTilehasMine()) {
                         tile.hasMine = true;
                         tile.noOfMines = -8;
@@ -44,85 +44,87 @@ var Grid = function(width, height, level) {
                     }
 
                 }
-                grid.gridData[i][j] = tile;
+                this.gridData[i][j] = tile;
             }
         }
+        this.totalMines = mines;
+        this.totalFlags = mines;
         return true;
     }
 
-    var updateNeighbour = function(grid, i, j) {
+    this.updateNeighbour = function(i, j) {
         var neighbour_i_index;
         var neighbour_j_index;
 
         // Top left
         neighbour_i_index = i - 1;
         neighbour_j_index = j - 1;
-        __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
+        this.__updateMinesCount(neighbour_i_index, neighbour_j_index);
 
         // Top
         neighbour_i_index = i - 1;
         neighbour_j_index = j;
-        __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
+        this.__updateMinesCount(neighbour_i_index, neighbour_j_index);
 
         // Top Right
         neighbour_i_index = i - 1;
         neighbour_j_index = j + 1;
-        __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
+        this.__updateMinesCount(neighbour_i_index, neighbour_j_index);
 
         // Right
         neighbour_i_index = i;
         neighbour_j_index = j + 1;
-        __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
+        this.__updateMinesCount(neighbour_i_index, neighbour_j_index);
 
         // Bottom Right
         neighbour_i_index = i + 1;
         neighbour_j_index = j + 1;
-        __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
+        this.__updateMinesCount(neighbour_i_index, neighbour_j_index);
 
         // Bottom
         neighbour_i_index = i + 1;
         neighbour_j_index = j;
-        __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
+        this.__updateMinesCount(neighbour_i_index, neighbour_j_index);
 
         // Bottom left
         neighbour_i_index = i + 1;
         neighbour_j_index = j - 1;
-        __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
+        this.__updateMinesCount(neighbour_i_index, neighbour_j_index);
 
         // Top left
         neighbour_i_index = i;
         neighbour_j_index = j - 1;
-        __updateMinesCount(grid, neighbour_i_index, neighbour_j_index);
+        this.__updateMinesCount(neighbour_i_index, neighbour_j_index);
     }
 
-    var __updateMinesCount = function(grid, i, j) {
-        if ((i >= 0 && i < grid.height) && (j >= 0 && j < grid.width)) {
+    this.__updateMinesCount = function(i, j) {
+        if ((i >= 0 && i < this.height) && (j >= 0 && j < this.width)) {
             // console.log(i + "i , j" + j);
-            grid.gridData[i][j].noOfMines += 1;
+            this.gridData[i][j].noOfMines += 1;
         }
         return;
     }
 
-    var calculateNoOfMines = function(grid) {
-        for (i = 0; i < grid.height; i++) {
-            for (j = 0; j < grid.width; j++) {
-                var tile = grid.gridData[i][j];
+    this.calculateNoOfMines = function() {
+        for (i = 0; i < this.height; i++) {
+            for (j = 0; j < this.width; j++) {
+                var tile = this.gridData[i][j];
                 if (tile.hasMine) {
-                    updateNeighbour(grid, i, j);
+                    this.updateNeighbour(i, j);
                 }
             }
         }
         return;
     }
 
-    var renderGrid = function(grid) {
+    this.renderGrid = function() {
         var source = $("#some-template").html();
         var template = Handlebars.compile(source);
 
         var data = new Object();
-        data.width = grid.width;
-        data.height = grid.height;
-        data.gridData = grid.gridData;
+        data.width = this.width;
+        data.height = this.height;
+        data.gridData = this.gridData;
 
         $("#grid").html(template(data));
         // $("body").append(template(data));
@@ -172,19 +174,18 @@ var Grid = function(width, height, level) {
                 tile.isOpened = true;
                 if (tile.hasFlag) {
                     if (tile.hasMine) {
-                        $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("flag-true");
+                        $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("flag-true");
                         continue;
-                    }
-                    else {
-                        $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("flag-false");
+                    } else {
+                        $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("flag-false");
                         continue;
                     }
                 }
                 if (tile.hasMine && !tile.hasFlag) {
-                    $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("mine-true");
+                    $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("mine-true");
                     continue;
                 }
-                $("table tbody tr:nth-child("+(i + 1)+") td:nth-child(" + (j + 1) + ")").addClass("opened");
+                $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("opened");
             }
         }
         this.gameSolved = true;
@@ -199,11 +200,9 @@ var Grid = function(width, height, level) {
                 var tile = this.gridData[i][j];
                 if (tile.isOpened) {
                     continue;
-                }
-                else if (tile.hasMine) {
+                } else if (tile.hasMine) {
                     continue;
-                }
-                else {
+                } else {
                     return false;
                 }
             }
@@ -214,8 +213,7 @@ var Grid = function(width, height, level) {
     var gameOverMessage = function(flag) {
         if (flag) {
             $("body").append("<p style='color:green'>Success</p>");
-        }
-        else {
+        } else {
             $("body").append("<p style='color:red'>Failed</p>");
         }
         return true;
@@ -228,8 +226,10 @@ var Grid = function(width, height, level) {
 
         if (tile.hasFlag) {
             tile.hasFlag = false;
+            this.totalFlags += 1;
         } else {
             tile.hasFlag = true;
+            this.totalFlags -= 1;
         }
         this.gridData[row][col] = tile;
         if (this.__checkGrid()) {
@@ -248,7 +248,7 @@ var Grid = function(width, height, level) {
         }
         if (tile.noOfMines) {
             tile.isOpened = true;
-            $("table tbody tr:nth-child("+(row + 1)+") td:nth-child(" + (col + 1) + ")").addClass("opened");
+            $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").addClass("opened");
             return true;
         }
         if (tile.noOfMines == 0) {
@@ -262,26 +262,28 @@ var Grid = function(width, height, level) {
         return;
     }
 
-    this.updateTile = function(element, tile) {
+    this.updateRightClickTile = function(element, tile) {
         // $(element).removeClass("flag-true");
         if (tile.hasFlag) {
             $(element).addClass("flag-true");
-            return;
         } else {
             $(element).removeClass("flag-true");
-            // return;
-        }
-        if (tile.hasMine) {
-            $(element).addClass("mine-true");
-            return;
-        } else {
-            $(element).removeClass("mine-true");
-            // return;
         }
         return;
     }
-    var bindEvents = function() {
-        // $("#grid td").on("click", this.rightClick(1));
+
+    this.updateLeftClickTile = function(element, tile) {
+        if (tile.hasMine) {
+            $(element).addClass("mine-true");
+        } else {
+            $(element).removeClass("mine-true");
+        }
+        return;
+    }
+
+    var exitGame = function() {
+        $('body').append("<p>Success :)</p>");
+        return;
     }
 }
 
@@ -293,10 +295,10 @@ var Tile = function() {
     this.noOfMines = 0;
 }
 
-$( document ).ready(function() {
-    
+$(document).ready(function() {
+
     var grid;
-    $("#restart").on("click", function(){
+    $("#restart").on("click", function() {
         grid = new Grid(8, 8, 100);
         grid.init();
     });
