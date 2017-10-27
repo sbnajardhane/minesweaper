@@ -9,6 +9,7 @@ var Grid = function(width, height, level) {
         this.placeMines();
         this.calculateNoOfMines();
         this.renderGrid();
+        this.gameSolved = false;
     }
 
     var __getTwoDimentionArray = function(n, m) {
@@ -139,6 +140,9 @@ var Grid = function(width, height, level) {
             return;
         }
         $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("opened");
+        if (this.gridData[i][j].noOfMines > 0) {
+            $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").html(this.gridData[i][j].noOfMines);
+        }
 
         if (this.gridData[i][j].noOfMines > 0 || (this.gridData[i][j].hasMine) || this.gridData[i][j].isOpened) {
             this.gridData[i][j].isOpened = true;
@@ -168,6 +172,9 @@ var Grid = function(width, height, level) {
         for (i = 0; i < this.height; i++) {
             for (j = 0; j < this.width; j++) {
                 var tile = this.gridData[i][j];
+                if (tile.noOfMines > 0) {
+                    $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").html(tile.noOfMines);
+                }
                 if (tile.isOpened) {
                     continue;
                 }
@@ -236,6 +243,7 @@ var Grid = function(width, height, level) {
             this.gameSolved = true;
             gameOverMessage(true);
         }
+        tile.updateRightClickTile(row, col);
         return;
     }
 
@@ -248,8 +256,8 @@ var Grid = function(width, height, level) {
         }
         if (tile.noOfMines) {
             tile.isOpened = true;
-            $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").addClass("opened");
-            return true;
+            // $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").addClass("opened");
+            // return true;
         }
         if (tile.noOfMines == 0) {
             this.__revilGrid(row, col);
@@ -257,27 +265,9 @@ var Grid = function(width, height, level) {
         }
         if (this.__checkGrid()) {
             this.gameSolved = true;
-            showSuccess();
+            gameOverMessage(true);
         }
-        return;
-    }
-
-    this.updateRightClickTile = function(element, tile) {
-        // $(element).removeClass("flag-true");
-        if (tile.hasFlag) {
-            $(element).addClass("flag-true");
-        } else {
-            $(element).removeClass("flag-true");
-        }
-        return;
-    }
-
-    this.updateLeftClickTile = function(element, tile) {
-        if (tile.hasMine) {
-            $(element).addClass("mine-true");
-        } else {
-            $(element).removeClass("mine-true");
-        }
+        tile.updateLeftClickTile(row, col);
         return;
     }
 
@@ -293,6 +283,24 @@ var Tile = function() {
     this.isOpened = false;
     this.hasFlag = false;
     this.noOfMines = 0;
+
+    this.updateRightClickTile = function(row, col) {
+        // $(element).removeClass("flag-true");
+        if (this.hasFlag) {
+            $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").addClass("flag-true");
+        } else {
+            $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").removeClass("flag-true");
+        }
+        return;
+    }
+
+    this.updateLeftClickTile = function(row, col) {
+        if (this.noOfMines > 0) {
+            $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").html(this.noOfMines);
+        }
+        $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").addClass("opened");
+        return;
+    }
 }
 
 $(document).ready(function() {
@@ -304,8 +312,8 @@ $(document).ready(function() {
     });
     $("#restart").trigger("click");
 
-    $("tr > td").mouseup(function(event) {
-
+    // $("tr > td").mouseup(function(event) {
+    $("body").on("mouseup", "table tr > td", function(event) {
         // console.log($(this));
         var row = parseInt($(this).parent()[0].id);
         var col = $(this)[0].cellIndex;
@@ -324,7 +332,7 @@ $(document).ready(function() {
                 default:
                     return;
             }
-            grid.updateTile(this, grid.gridData[row][col]);
+            // grid.updateTile(this, grid.gridData[row][col]);
             // $(this).addClass("mine");
             console.log(grid.gridData[row][col]);
         }
