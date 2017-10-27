@@ -139,7 +139,11 @@ var Grid = function(width, height, level) {
         if ((i < 0 || i >= this.width) || (j < 0 || j >= this.height)) {
             return;
         }
+        if (!this.gridData[i][j].hasMine && this.gridData[i][j].hasFlag) {
+            return;
+        }
         $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("opened");
+
         if (this.gridData[i][j].noOfMines > 0) {
             $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").html(this.gridData[i][j].noOfMines);
         }
@@ -184,13 +188,17 @@ var Grid = function(width, height, level) {
                         $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("flag-true");
                         continue;
                     } else {
-                        $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("flag-false");
+                        $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").removeClass("flag-true");
                         continue;
                     }
                 }
                 if (tile.hasMine && !tile.hasFlag) {
                     $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("mine-true");
                     continue;
+                }
+                else {
+                    $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").removeClass("flag-true");
+                    // continue;
                 }
                 $("table tbody tr:nth-child(" + (i + 1) + ") td:nth-child(" + (j + 1) + ")").addClass("opened");
             }
@@ -250,24 +258,27 @@ var Grid = function(width, height, level) {
     this.leftClick = function(row, col) {
         var tile = this.gridData[row][col];
         // console.log(tile);
-        if (tile.hasMine && !tile.hasFlag) {
-            this.__revilAllGrid();
-            return false;
+        if (!tile.hasFlag) {
+            if (tile.hasMine) {
+                this.__revilAllGrid();
+                return false;
+            }
+            if (tile.noOfMines) {
+                tile.isOpened = true;
+                tile.updateLeftClickTile(row, col);
+                // $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").addClass("opened");
+                return true;
+            }
+            if (tile.noOfMines == 0) {
+                this.__revilGrid(row, col);
+                return true;
+            }
+            if (this.__checkGrid()) {
+                this.gameSolved = true;
+                gameOverMessage(true);
+            }
         }
-        if (tile.noOfMines) {
-            tile.isOpened = true;
-            // $("table tbody tr:nth-child(" + (row + 1) + ") td:nth-child(" + (col + 1) + ")").addClass("opened");
-            // return true;
-        }
-        if (tile.noOfMines == 0) {
-            this.__revilGrid(row, col);
-            return true;
-        }
-        if (this.__checkGrid()) {
-            this.gameSolved = true;
-            gameOverMessage(true);
-        }
-        tile.updateLeftClickTile(row, col);
+        // tile.updateLeftClickTile(row, col);
         return;
     }
 
@@ -311,7 +322,9 @@ $(document).ready(function() {
         grid.init();
     });
     $("#restart").trigger("click");
-
+    $('body').on('contextmenu', '#grid', function(e){
+        return false;
+    });
     // $("tr > td").mouseup(function(event) {
     $("body").on("mouseup", "table tr > td", function(event) {
         // console.log($(this));
